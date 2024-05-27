@@ -8,6 +8,14 @@ const usernameQuerySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  //   if (request.method !== "GET") {
+  //     return Response.json({
+  //       success: false,
+  //       message: "Method not allowed!",
+  //       status: 405,
+  //     });
+  //   }       // new version of next.js already handles this kind of thing.
+
   await dbConnect();
   try {
     const { searchParams } = new URL(request.url);
@@ -20,14 +28,18 @@ export async function GET(request: Request) {
     console.log(result);
     if (!result.success) {
       const usernameErrors = result.error.format().username?._errors || [];
-      return Response.json({
-        success: false,
-        message:
-          usernameErrors.length > 0
-            ? usernameErrors.join(", ")
-            : "Invalid wuery parameters",
-        status: 400,
-      });
+      return Response.json(
+        {
+          success: false,
+          message:
+            usernameErrors.length > 0
+              ? usernameErrors.join(", ")
+              : "Invalid wuery parameters",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
     const { username } = result.data;
@@ -37,23 +49,35 @@ export async function GET(request: Request) {
       isVerified: true,
     });
     if (existingVerifiedUser) {
-      return Response.json({
-        success: false,
-        message: "Username is already token!",
-        status: 400,
-      });
+      return Response.json(
+        {
+          success: false,
+          message: "Username is already token!",
+        },
+        {
+          status: 400
+        }
+      );
     }
-     return Response.json({
-       success: true,
-       message: "Username is unique!",
-       status: 200,
-     });
+    return Response.json(
+      {
+        success: true,
+        message: "Username is unique!",
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error("Error checking username", error);
-    return Response.json({
-      message: "Error checking username",
-      success: false,
-      status: 500,
-    });
+    return Response.json(
+      {
+        message: "Error checking username",
+        success: false,
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }
